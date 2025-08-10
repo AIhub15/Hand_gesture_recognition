@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hand Gesture Recognition</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 800px;
+            gap: 20px;
+        }
+        .video-container {
+            position: relative;
+            width: 100%;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        #videoFeed {
+            width: 100%;
+            display: block;
+        }
+        .prediction-container {
+            background-color: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            text-align: center;
+        }
+        .prediction {
+            font-size: 28px;
+            margin: 10px 0;
+            font-weight: bold;
+            color: red; /* Changed to red */
+        }
+        .confidence {
+            font-size: 20px;
+            color: red; /* Changed to red */
+            margin-bottom: 15px;
+        }
+        .gesture-info {
+            margin-top: 10px;
+            font-size: 18px;
+            color: red; /* Changed to red */
+        }
+        .gesture-guide {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+        }
+        .gesture-guide h3 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .gesture-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .gesture-item {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            color: red; /* Gesture list text in red */
+        }
+        .gesture-item img {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Real-Time Hand Gesture Recognition</h1>
+    <div class="container">
+        <div class="video-container">
+            <img id="videoFeed" src="{{ url_for('video_feed') }}">
+        </div>
+        <div class="prediction-container">
+            <h2>Current Prediction</h2>
+            <div class="prediction">Gesture: <span id="gesture-name">-</span></div>
+            <div class="confidence">Confidence: <span id="confidence">-</span></div>
+            <div class="gesture-info" id="gesture-description">-</div>
+        </div>
+        <div class="gesture-guide">
+            <h3>Gesture Guide</h3>
+            <p>Show your hand in the center rectangle to get predictions. Here are the gestures I can recognize:</p>
+            <div class="gesture-list" id="gesture-list">
+                <!-- Will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Update prediction every 500ms
+        setInterval(() => {
+            fetch('/get_prediction')
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.error) {
+                        document.getElementById('gesture-name').textContent = data.gesture_name;
+                        document.getElementById('confidence').textContent = data.confidence.toFixed(2);
+                        document.getElementById('gesture-description').textContent = data.gesture_description;
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }, 500);
+
+        // Populate gesture guide
+        const gestures = {
+            0: {name: "Closed Fist", description: "Hand closed in a fist"},
+            1: {name: "Pointing Up", description: "Index finger pointing up"},
+            2: {name: "Victory Sign", description: "Index and middle finger up (peace sign)"},
+            3: {name: "Three Fingers", description: "Three fingers extended"},
+            4: {name: "Four Fingers", description: "Four fingers extended"},
+            5: {name: "Open Hand", description: "All five fingers extended"},
+            6: {name: "Thumbs Up", description: "Thumb extended upward"},
+            7: {name: "OK Sign", description: "Thumb and index finger forming a circle"},
+            8: {name: "Gun Sign", description: "Index finger and thumb extended like a gun"},
+            9: {name: "Shaka Sign", description: "Thumb and pinky extended"}
+        };
+
+        const gestureList = document.getElementById('gesture-list');
+        for (const [id, gesture] of Object.entries(gestures)) {
+            const item = document.createElement('div');
+            item.className = 'gesture-item';
+            item.innerHTML = `
+                <div><strong>${gesture.name}</strong></div>
+                <div>${id}</div>
+                <div class="small">${gesture.description}</div>
+            `;
+            gestureList.appendChild(item);
+        }
+    </script>
+</body>
+</html>
